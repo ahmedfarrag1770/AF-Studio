@@ -1,0 +1,1496 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AF Studio - مركز توليد التصاميم بالذكاء الاصطناعي</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'primary-design': '#1e3a8a', /* Deep Blue */
+                        'secondary-design': '#fef2f2', /* Light Red/Pink Accent */
+                        'luxury-gold': '#DAA520', /* New Gold Accent - Still used for accents */
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /*
+        تعديلات CSS الأساسية - تصميم بسيط
+        */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7f7f7;
+        }
+
+        /* Loader Style */
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #1e3a8a; 
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Custom radio button appearance */
+        .form-radio {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            display: inline-block;
+            width: 1rem;
+            height: 1rem;
+            border-radius: 50%;
+            border: 2px solid #ccc;
+            outline: none;
+            cursor: pointer;
+            transition: border-color 0.2s, background-color 0.2s;
+        }
+
+        .form-radio:checked {
+            border-color: transparent;
+            background-color: #1e3a8a; /* Primary color */
+            position: relative;
+        }
+
+        .form-radio:checked::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: white;
+        }
+
+        /* Drag and Drop Styling */
+        .drop-zone.drag-over {
+            border-style: dashed;
+            border-color: #1e3a8a; /* primary-design color */
+            background-color: #eff6ff; /* blue-100 */
+        }
+        
+        /* Recording animation */
+        .recording-indicator {
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1.1);
+                opacity: 0.7;
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <h1 class="text-4xl font-extrabold text-primary-design mb-8 text-center border-b-2 pb-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="inline-block w-8 h-8 ml-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21.5V6"/><path d="M12 3v3"/><path d="M15 6.5l-3-3l-3 3"/><path d="M18.8 14.5c.6-1.5 1.2-4.5 0-7c-1.2-2.5-4.8-2.5-6 0s-4.8 5.5-6 7c-1.2 2.5 1.2 5.5 1.8 7"/></svg>
+        AF Studio
+    </h1>
+
+    <div class="flex flex-col lg:flex-row gap-8 min-h-[70vh]">
+
+        <!-- لوحة التحكم (Control Panel) -->
+        <div class="lg:w-1/3 p-6 bg-white rounded-xl shadow-lg h-fit">
+            <h2 class="text-2xl font-bold mb-6 text-gray-800 border-b pb-3">الإعدادات</h2>
+
+            <!-- قسم رفع الصورة -->
+            <div class="bg-blue-50 p-4 rounded-lg border border-blue-200 mb-4 space-y-3">
+                <h3 class="font-bold text-lg text-blue-800 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 ml-2 text-primary-design" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                    1. صور المنتج المرجعية (للتفاصيل الدقيقة)
+                </h3>
+                
+                <div class="grid grid-cols-3 gap-2">
+                    <!-- Image 1 -->
+                    <div>
+                        <input type="file" id="product-image-upload-1" accept="image/*" class="w-full text-sm text-gray-700 hidden" onchange="previewImage(this, 1)">
+                        <label for="product-image-upload-1" class="block cursor-pointer bg-gray-100 p-2 rounded-lg border border-gray-300 hover:bg-gray-200 text-center text-xs text-gray-600">
+                            صورة 1
+                        </label>
+                        <div id="uploaded-image-preview-1" data-index="1" class="drop-zone w-full h-16 bg-gray-200 rounded-lg flex items-center justify-center overflow-hidden mt-1 cursor-pointer">
+                            <span class="text-[10px] text-gray-500 pointer-events-none text-center">معاينة أو اسحب الصورة هنا</span>
+                        </div>
+                    </div>
+                     <!-- Image 2 -->
+                    <div>
+                        <input type="file" id="product-image-upload-2" accept="image/*" class="w-full text-sm text-gray-700 hidden" onchange="previewImage(this, 2)">
+                        <label for="product-image-upload-2" class="block cursor-pointer bg-gray-100 p-2 rounded-lg border border-gray-300 hover:bg-gray-200 text-center text-xs text-gray-600">
+                            صورة 2
+                        </label>
+                        <div id="uploaded-image-preview-2" data-index="2" class="drop-zone w-full h-16 bg-gray-200 rounded-lg flex items-center justify-center overflow-hidden mt-1 cursor-pointer">
+                             <span class="text-[10px] text-gray-500 pointer-events-none text-center">معاينة أو اسحب الصورة هنا</span>
+                        </div>
+                    </div>
+                     <!-- Image 3 -->
+                    <div>
+                        <input type="file" id="product-image-upload-3" accept="image/*" class="w-full text-sm text-gray-700 hidden" onchange="previewImage(this, 3)">
+                        <label for="product-image-upload-3" class="block cursor-pointer bg-gray-100 p-2 rounded-lg border border-gray-300 hover:bg-gray-200 text-center text-xs text-gray-600">
+                            صورة 3
+                        </label>
+                        <div id="uploaded-image-preview-3" data-index="3" class="drop-zone w-full h-16 bg-gray-200 rounded-lg flex items-center justify-center overflow-hidden mt-1 cursor-pointer">
+                             <span class="text-[10px] text-gray-500 pointer-events-none text-center">معاينة أو اسحب الصورة هنا</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- NEW SECTION: Reference Images -->
+            <div class="bg-purple-50 p-4 rounded-lg border border-purple-200 mb-6 space-y-3">
+                <h3 class="font-bold text-lg text-purple-800 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 ml-2 text-purple-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                    صور الإلهام (Reference) (للستايل والتكوين)
+                </h3>
+                
+                <div class="grid grid-cols-3 gap-2">
+                    <!-- Ref Image 1 -->
+                    <div>
+                        <input type="file" id="ref-image-upload-1" accept="image/*" class="w-full text-sm text-gray-700 hidden" onchange="previewRefImage(this, 1)">
+                        <label for="ref-image-upload-1" class="block cursor-pointer bg-gray-100 p-2 rounded-lg border border-gray-300 hover:bg-gray-200 text-center text-xs text-gray-600">
+                            مرجع 1
+                        </label>
+                        <div id="ref-image-preview-1" data-index="1" class="drop-zone-ref w-full h-16 bg-gray-200 rounded-lg flex items-center justify-center overflow-hidden mt-1 cursor-pointer">
+                            <span class="text-[10px] text-gray-500 pointer-events-none text-center">اسحب صورة إلهام هنا</span>
+                        </div>
+                    </div>
+                     <!-- Ref Image 2 -->
+                    <div>
+                        <input type="file" id="ref-image-upload-2" accept="image/*" class="w-full text-sm text-gray-700 hidden" onchange="previewRefImage(this, 2)">
+                        <label for="ref-image-upload-2" class="block cursor-pointer bg-gray-100 p-2 rounded-lg border border-gray-300 hover:bg-gray-200 text-center text-xs text-gray-600">
+                            مرجع 2
+                        </label>
+                        <div id="ref-image-preview-2" data-index="2" class="drop-zone-ref w-full h-16 bg-gray-200 rounded-lg flex items-center justify-center overflow-hidden mt-1 cursor-pointer">
+                             <span class="text-[10px] text-gray-500 pointer-events-none text-center">اسحب صورة إلهام هنا</span>
+                        </div>
+                    </div>
+                     <!-- Ref Image 3 -->
+                    <div>
+                        <input type="file" id="ref-image-upload-3" accept="image/*" class="w-full text-sm text-gray-700 hidden" onchange="previewRefImage(this, 3)">
+                        <label for="ref-image-upload-3" class="block cursor-pointer bg-gray-100 p-2 rounded-lg border border-gray-300 hover:bg-gray-200 text-center text-xs text-gray-600">
+                            مرجع 3
+                        </label>
+                        <div id="ref-image-preview-3" data-index="3" class="drop-zone-ref w-full h-16 bg-gray-200 rounded-lg flex items-center justify-center overflow-hidden mt-1 cursor-pointer">
+                             <span class="text-[10px] text-gray-500 pointer-events-none text-center">اسحب صورة إلهام هنا</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+             <!-- New Section: Prompt Generation -->
+            <div class="bg-yellow-50 p-4 rounded-xl border border-yellow-200 mt-6 space-y-3">
+                <h3 class="font-bold text-lg text-yellow-800 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 ml-2 text-luxury-gold" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
+                    2. توليد البرومبت
+                </h3>
+                <button id="generate-prompt-btn" class="w-full bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 disabled:opacity-50 flex items-center justify-center" onclick="generateProfessionalPrompts()">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 ml-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 10l-9.9 9.9 4 4L22.5 15.5 14.5 10z"/><path d="M14.5 10l4-4 4 4L18.5 14.5"/></svg>
+                    توليد البرومبت الاحترافي آلياً
+                </button>
+                
+                <div id="prompt-loader-area" class="flex justify-center items-center h-8 hidden">
+                    <div class="loader w-6 h-6"></div>
+                    <span class="text-gray-500 mr-3 text-sm">جاري تحليل الترندات والسوق وصياغة الوصف الفني...</span>
+                </div>
+                <p id="prompt-status" class="text-xs text-gray-600 pt-1 text-center">يستخدم الذكاء الاصطناعي الصور المرفوعة والبحث عن الترندات لصياغة برومبت احترافي لنموذج التصميم.</p>
+
+                <!-- Image Prompt Input -->
+                <div class="relative">
+                    <label for="image-prompt-input" class="block text-sm font-medium text-gray-700 mb-2 mt-3">برومبت تصميم الصورة (يُستخدم للتصميم والكابشن)</label>
+                    <textarea id="image-prompt-input" rows="4" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-yellow-500 focus:border-yellow-500"></textarea>
+                    <div class="absolute top-[32px] left-2 flex items-center gap-2">
+                         <a href="https://chat.openai.com/" target="_blank" rel="noopener noreferrer" class="p-1.5 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors" title="الاستعانة بـ ChatGPT لتحسين البرومبت">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-700" viewBox="0 0 16 16" fill="currentColor"><path d="M8.5 1.866a1 1 0 1 0-1 0V3h-2A4.5 4.5 0 0 0 1 7.5V8a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1v1.5a4.5 4.5 0 0 0 4.5 4.5h3A4.5 4.5 0 0 0 15 13.5V12a1 1 0 0 0 1-1V9a1 1 0 0 0-1-1v-.5A4.5 4.5 0 0 0 10.5 3h-2V1.866ZM14 9v2h-1v-2h1Zm-3 0v2H3v-2h8Z"/><path d="M6 12.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5ZM3 8.062C3 6.76 4.235 5.765 5.53 5.886a26.58 26.58 0 0 0 4.94 0C11.765 5.765 13 6.76 13 8.062v1.157a.933.933 0 0 1-.765.935c-.845.147-2.34.346-4.235.346-1.895 0-3.39-.2-4.235-.346A.933.933 0 0 1 3 9.219V8.062Zm4.542-.827a.25.25 0 0 0-.217.068l-.92.9a24.767 24.767 0 0 1-1.871-.183.25.25 0 0 0-.068.217l.92.9a.25.25 0 0 0 .217.068l1.871.183.25.25 0 0 0 .068-.217l-.92-.9a.25.25 0 0 0-.217-.068Zm-2.51 2.97A.25.25 0 0 0 4.99 10.79l-.92.9a.25.25 0 0 1-.217.068l-1.871-.183a.25.25 0 0 1-.068-.217l.92-.9a.25.25 0 0 1 .217-.068l1.871.183Zm5.02 0a.25.25 0 0 0 .217-.068l.92-.9a.25.25 0 0 1 .068-.217l-1.871-.183a.25.25 0 0 1-.217-.068l-.92.9a.25.25 0 0 1-.068.217l1.871.183Z"/></svg>
+                        </a>
+                        <select id="lang-selector-image" class="w-auto text-xs bg-gray-100 border-gray-200 rounded-full py-1 px-2 focus:ring-yellow-500 focus:border-yellow-500">
+                            <option value="en-US">English</option>
+                            <option value="ar-SA">العربية</option>
+                        </select>
+                        <button id="record-image-prompt-btn" class="p-1.5 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors" title="تسجيل البرومبت صوتياً">
+                            <svg id="mic-icon-image" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line></svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Video Prompt Input RE-ADDED -->
+                <div class="relative">
+                    <label for="video-prompt-input" class="block text-sm font-medium text-gray-700 mb-2">برومبت فيديو CGI (يُستخدم للـ Storyboards)</label>
+                    <textarea id="video-prompt-input" rows="4" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-yellow-500 focus:border-yellow-500"></textarea>
+                    <div class="absolute top-[32px] left-2 flex items-center gap-2">
+                        <a href="https://chat.openai.com/" target="_blank" rel="noopener noreferrer" class="p-1.5 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors" title="الاستعانة بـ ChatGPT لتحسين البرومبت">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-700" viewBox="0 0 16 16" fill="currentColor"><path d="M8.5 1.866a1 1 0 1 0-1 0V3h-2A4.5 4.5 0 0 0 1 7.5V8a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1v1.5a4.5 4.5 0 0 0 4.5 4.5h3A4.5 4.5 0 0 0 15 13.5V12a1 1 0 0 0 1-1V9a1 1 0 0 0-1-1v-.5A4.5 4.5 0 0 0 10.5 3h-2V1.866ZM14 9v2h-1v-2h1Zm-3 0v2H3v-2h8Z"/><path d="M6 12.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5ZM3 8.062C3 6.76 4.235 5.765 5.53 5.886a26.58 26.58 0 0 0 4.94 0C11.765 5.765 13 6.76 13 8.062v1.157a.933.933 0 0 1-.765.935c-.845.147-2.34.346-4.235.346-1.895 0-3.39-.2-4.235-.346A.933.933 0 0 1 3 9.219V8.062Zm4.542-.827a.25.25 0 0 0-.217.068l-.92.9a24.767 24.767 0 0 1-1.871-.183.25.25 0 0 0-.068.217l.92.9a.25.25 0 0 0 .217.068l1.871.183.25.25 0 0 0 .068-.217l-.92-.9a.25.25 0 0 0-.217-.068Zm-2.51 2.97A.25.25 0 0 0 4.99 10.79l-.92.9a.25.25 0 0 1-.217.068l-1.871-.183a.25.25 0 0 1-.068-.217l.92-.9a.25.25 0 0 1 .217-.068l1.871.183Zm5.02 0a.25.25 0 0 0 .217-.068l.92-.9a.25.25 0 0 1 .068-.217l-1.871-.183a.25.25 0 0 1-.217-.068l-.92.9a.25.25 0 0 1-.068.217l1.871.183Z"/></svg>
+                        </a>
+                        <select id="lang-selector-video" class="w-auto text-xs bg-gray-100 border-gray-200 rounded-full py-1 px-2 focus:ring-yellow-500 focus:border-yellow-500">
+                            <option value="en-US">English</option>
+                            <option value="ar-SA">العربية</option>
+                        </select>
+                        <button id="record-video-prompt-btn" class="p-1.5 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors" title="تسجيل البرومبت صوتياً">
+                            <svg id="mic-icon-video" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Existing Scale Options -->
+            <div class="space-y-6 mt-6 border-t pt-4">
+                 <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-3 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 ml-2 text-green-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/></svg>
+                        3. مقياس تصميم الصورة (سوشيال ميديا)
+                    </label>
+                    <div class="flex gap-6 p-2 bg-gray-50 rounded-lg">
+                        <label class="inline-flex items-center">
+                            <input type="radio" name="image-scale" value="1:1" checked class="form-radio text-green-600 h-4 w-4">
+                            <span class="mr-2 text-sm text-gray-700 font-medium">1:1 (مربع - انستجرام فيد)</span>
+                        </label>
+                        <label class="inline-flex items-center">
+                            <input type="radio" name="image-scale" value="9:16" class="form-radio text-green-600 h-4 w-4">
+                            <span class="mr-2 text-sm text-gray-700 font-medium">9:16 (عمودي - ستوري/ريلز)</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Video Scale Options RE-ADDED -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-3 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 ml-2 text-indigo-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 10l7 4-7 4V10z"/><rect x="3" y="4" width="16" height="16" rx="2"/></svg>
+                        4. مقياس الفيديو (CGI Storyboards)
+                    </label>
+                    <div class="flex gap-6 p-2 bg-gray-50 rounded-lg">
+                        <label class="inline-flex items-center">
+                            <input type="radio" name="video-scale" value="9:16" checked class="form-radio text-indigo-600 h-4 w-4">
+                            <span class="mr-2 text-sm text-gray-700 font-medium">9:16 (عمودي/ريلز)</span>
+                        </label>
+                        <label class="inline-flex items-center">
+                            <input type="radio" name="video-scale" value="16:9" class="form-radio text-indigo-600 h-4 w-4">
+                            <span class="mr-2 text-sm text-gray-700 font-medium">16:9 (أفقي/يوتيوب)</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+
+        <!-- منطقة المخرجات (AI Outputs) -->
+        <div class="lg:w-2/3 flex flex-col gap-8">
+            
+            <!-- أدوات التوليد بالذكاء الاصطناعي -->
+            <div class="p-6 bg-white rounded-xl shadow-lg">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">توليد نماذج تصميم متعددة</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <button id="generate-image-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg shadow-md transition duration-300 flex items-center justify-center disabled:opacity-50" onclick="generateSocialMediaDesign()">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 ml-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h.01"/><path d="M16.5 7.5l-3 3l-1.5-1.5l-3 3"/><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/></svg>
+                        توليد 3 صور
+                    </button>
+                    <!-- Video Button RE-ADDED -->
+                    <button id="generate-video-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-lg shadow-md transition duration-300 flex items-center justify-center disabled:opacity-50" onclick="generateCgiConcept()">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 ml-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2" ry="2"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+                        توليد 3 Storyboards
+                    </button>
+                    <button id="generate-inspiration-btn" class="bg-orange-600 hover:bg-orange-700 text-white font-bold py-3 px-4 rounded-lg shadow-md transition duration-300 flex items-center justify-center disabled:opacity-50" onclick="generateCreativeInspiration()">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 ml-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10h-6"/><path d="M22 14h-6"/><path d="M22 18H8"/><path d="M2 14h6"/><path d="M2 18h6"/><path d="M2 10h10"/></svg>
+                        إلهام التسويق
+                    </button>
+                </div>
+                
+                <!-- منطقة مخرجات الذكاء الاصطناعي -->
+                <div id="ai-output-area" class="space-y-6">
+
+                    <!-- مخرج تصميم السوشيال ميديا (صورة) -->
+                    <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                        <h3 class="text-lg font-semibold mb-3 text-gray-700 border-b pb-2 flex items-center">
+                            <span class="text-green-600 mr-2">●</span> تصميمات الصور الإعلانية (3 نماذج)
+                        </h3>
+                        <div id="image-loader-area" class="flex flex-col justify-center items-center h-48 hidden bg-white/70 rounded-lg">
+                            <div class="loader mb-3"></div>
+                            <span class="text-gray-600 font-medium">جاري توليد 3 صور إعلانية... (قد يستغرق وقتاً لضمان الجودة)</span>
+                        </div>
+                        <div id="social-media-image-grid" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <p class="md:col-span-3 text-gray-500 text-center p-8">اضغط على زر "توليد 3 صور" لإنشاء صور.</p>
+                        </div>
+                    </div>
+
+                    <!-- مخرج مفهوم الفيديو CGI (Storyboards & Veo 3 Prompts) RE-ADDED -->
+                    <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                        <h3 class="text-lg font-semibold mb-3 text-gray-700 border-b pb-2 flex items-center">
+                             <span class="text-indigo-600 mr-2">●</span> لوحة قصص الفيديو (Storyboards)
+                        </h3>
+                        <div id="concept-loader-area" class="flex flex-col justify-center items-center h-20 hidden bg-white/70 rounded-lg">
+                            <div class="loader mb-3 w-6 h-6"></div>
+                            <span class="text-gray-600 font-medium text-sm">جاري توليد الإطارات المرئية وبرومبتات Veo 3 للحركة...</span>
+                        </div>
+                        <!-- Main container for video output -->
+                        <div id="cgi-video-concept-list">
+                             <p class="text-gray-500 text-center p-3">اضغط على زر "توليد 3 نماذج مرئية (Storyboards)" للبدء.</p>
+                        </div>
+                    </div>
+                    
+                    <!-- New Section: Marketing Caption & Hashtags -->
+                    <div class="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+                        <h3 class="text-lg font-semibold mb-3 text-yellow-800 flex justify-between items-center border-b pb-2">
+                            <span class="flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 ml-2 text-luxury-gold" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/></svg>
+                                5. الكابشن والهاشتاجات
+                            </span>
+                            <button id="generate-caption-btn" class="bg-yellow-600 hover:bg-yellow-700 text-white text-xs font-bold py-1.5 px-3 rounded-lg shadow transition duration-300 disabled:opacity-50 flex items-center" onclick="generateCaptionAndHashtags()">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 inline-block ml-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17l4-4 4 4"/></svg>
+                                توليد الكابشن
+                            </button>
+                        </h3>
+                        <div id="caption-loader-area" class="flex justify-center items-center h-16 hidden">
+                            <div class="loader w-5 h-5"></div>
+                            <span class="text-gray-600 mr-3 text-sm">جاري البحث وتوليد المحتوى التسويقي...</span>
+                        </div>
+
+                        <div id="caption-output" class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
+                             <p class="md:col-span-2 text-gray-500 text-center p-3">اضغط على زر "توليد الكابشن" أعلاه بعد توليد البرومبتات لتبدأ.</p>
+                        </div>
+                    </div>
+                    <!-- End New Section -->
+
+
+                    <!-- New section for inspiration lists -->
+                    <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                        <h3 class="text-lg font-semibold mb-3 text-gray-700 border-b pb-2 flex items-center">
+                            <span class="text-orange-600 mr-2">●</span> إلهام التصميم والترندات
+                        </h3>
+                        <div id="inspiration-loader-area" class="flex flex-col justify-center items-center h-20 hidden bg-white/70 rounded-lg">
+                            <div class="loader mb-3 w-6 h-6"></div>
+                            <span class="text-gray-600 font-medium text-sm">جاري توليد قوائم الإلهام...</span>
+                        </div>
+                        <div id="creative-inspiration-list" class="space-y-6">
+                            <p class="text-gray-500 text-center p-3">اضغط على زر "توليد إلهام وترندات" للحصول على أفكار إبداعية.</p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- قسم معرض التصاميم المحفوظة -->
+            <div class="p-6 bg-white rounded-xl shadow-lg">
+                <details class="group">
+                    <summary class="flex justify-between items-center cursor-pointer list-none">
+                        <h2 class="text-2xl font-bold text-gray-800">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 inline-block ml-2 text-primary-design" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" /></svg>
+                            معرض التصاميم المحفوظة
+                        </h2>
+                        <span class="transition group-open:rotate-180">
+                            <svg fill="none" height="24" shape-rendering="geometricPrecision" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" viewBox="0 0 24 24" width="24"><path d="M6 9l6 6 6-6"></path></svg>
+                        </span>
+                    </summary>
+                    
+                    <div class="mt-6 border-t pt-4">
+                        <p id="gallery-placeholder" class="text-gray-500 text-center p-8">يتم حفظ التصاميم التي تم إنشاؤها هنا تلقائيًا.</p>
+            
+                        <!-- قسم التصميمات الإعلانية -->
+                        <div id="social-gallery-section" class="hidden">
+                            <h3 class="text-lg font-semibold mb-3 text-gray-700 flex items-center">
+                                <span class="text-green-600 mr-2">●</span> تصميمات الصور الإعلانية
+                            </h3>
+                            <div id="saved-social-images-grid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                                <!-- Saved social images will be injected here -->
+                            </div>
+                        </div>
+            
+                        <!-- قسم لوحات القصص -->
+                        <div id="storyboard-gallery-section" class="hidden mt-6">
+                            <h3 class="text-lg font-semibold mb-3 text-gray-700 flex items-center">
+                                <span class="text-indigo-600 mr-2">●</span> لوحات قصص الفيديو (Storyboards)
+                            </h3>
+                            <div id="saved-storyboards-grid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                                <!-- Saved storyboards will be injected here -->
+                            </div>
+                        </div>
+                    </div>
+                </details>
+            </div>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        // --- إعدادات وثوابت Firebase و API ---
+        const API_KEY = "";
+        // نموذج VLM (النموذج اللغوي والرؤية الحاسوبية): تم تثبيته على gemini-2.5-flash-preview-09-2025 للاستقرار
+        const VLM_MODEL = 'gemini-2.5-flash-preview-09-2025'; 
+        // نموذج توليد الصور (Nano Banana)
+        const IMAGE_MODEL = 'gemini-2.5-flash-image-preview';
+
+        // جلب عناصر التحكم
+        
+        const imageUploads = [
+            document.getElementById('product-image-upload-1'),
+            document.getElementById('product-image-upload-2'),
+            document.getElementById('product-image-upload-3'),
+        ];
+        const imagePreviews = [
+            document.getElementById('uploaded-image-preview-1'),
+            document.getElementById('uploaded-image-preview-2'),
+            document.getElementById('uploaded-image-preview-3'),
+        ];
+        // NEW: Reference Image Controls
+        const refImagePreviews = [
+            document.getElementById('ref-image-preview-1'),
+            document.getElementById('ref-image-preview-2'),
+            document.getElementById('ref-image-preview-3'),
+        ];
+        
+        const promptBtn = document.getElementById('generate-prompt-btn');
+        const promptLoader = document.getElementById('prompt-loader-area');
+
+        
+        const imageGrid = document.getElementById('social-media-image-grid');
+        const inspirationList = document.getElementById('creative-inspiration-list'); 
+        const conceptList = document.getElementById('cgi-video-concept-list'); 
+
+        
+        const imageLoader = document.getElementById('image-loader-area');
+        const inspirationLoader = document.getElementById('inspiration-loader-area'); 
+        const conceptLoader = document.getElementById('concept-loader-area'); 
+
+        const captionLoader = document.getElementById('caption-loader-area');
+        const captionOutput = document.getElementById('caption-output');
+        const captionBtn = document.getElementById('generate-caption-btn');
+        
+        const imageBtn = document.getElementById('generate-image-btn');
+        const inspirationBtn = document.getElementById('generate-inspiration-btn'); 
+        const videoBtn = document.getElementById('generate-video-btn'); 
+
+
+        let uploadedImageBase64Array = []; 
+        let uploadedRefImageBase64Array = []; // NEW: For reference images
+        let savedSocialImages = [];
+        let savedStoryboards = [];
+
+        // --- وظائف مساعدة للتحميل والشبكة ---
+
+        function showLoading(loader, button) {
+            loader.classList.remove('hidden');
+            if (button) button.disabled = true;
+        }
+
+        function hideLoading(loader, button) {
+            loader.classList.add('hidden');
+            if (button) button.disabled = false;
+        }
+        
+        // دالة مساعدة لتنزيل الصور
+        function downloadImage(base64Data, filename) {
+            const link = document.createElement('a');
+            link.href = `data:image/png;base64,${base64Data}`;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // دالة جلب مع إعادة محاولة (Exponential Backoff)
+        async function exponentialBackoffFetch(url, options, maxRetries = 5) {
+            for (let i = 0; i < maxRetries; i++) {
+                try {
+                    const response = await fetch(url, options);
+                    if (response.ok) {
+                        return response;
+                    } else if (response.status === 429 && i < maxRetries - 1) { // Too Many Requests
+                        const delay = Math.pow(2, i) * 1000 + Math.random() * 1000;
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                        continue;
+                    } else {
+                        // THIS IS WHERE THE ERROR IS CAUGHT
+                        throw new Error(`API call failed with status: ${response.status} - ${response.statusText}`);
+                    }
+                } catch (error) {
+                    if (i === maxRetries - 1) {
+                        throw error;
+                    }
+                    const delay = Math.pow(2, i) * 1000 + Math.random() * 1000;
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                }
+            }
+            throw new Error("Maximum retries reached.");
+        }
+
+
+        // --- وظائف تحليل الصورة ومعالجة الملفات ---
+
+        // معالج موحد للملفات (للاختيار والسحب والإفلات)
+        function handleFile(file, index, isRef = false) {
+            const targetArray = isRef ? uploadedRefImageBase64Array : uploadedImageBase64Array;
+            const targetPreviews = isRef ? refImagePreviews : imagePreviews;
+            const placeholderText = isRef ? "معاينة الإلهام" : "معاينة المنتج";
+
+            if (!file || !file.type.startsWith('image/')) {
+                if (!file) {
+                     targetArray[index - 1] = null;
+                     targetPreviews[index - 1].innerHTML = `<span class="text-[10px] text-gray-500 pointer-events-none text-center">${isRef ? 'اسحب صورة إلهام هنا' : 'معاينة أو اسحب الصورة هنا'}</span>`;
+                }
+                return;
+            };
+
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                const base64String = reader.result.split(',')[1];
+                const mimeType = reader.result.split(';')[0].split(':')[1];
+                
+                targetArray[index - 1] = { data: base64String, mimeType: mimeType };
+                
+                targetPreviews[index - 1].innerHTML = `<img src="${reader.result}" class="w-full h-full object-contain" alt="${placeholderText} ${index}"/>`;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // معاينة الصورة المرفوعة (من مدخل الملف الأصلي)
+        function previewImage(input, index) {
+            const file = input.files[0];
+            handleFile(file, index, false);
+        }
+        
+        // NEW: Preview for Reference Image
+        function previewRefImage(input, index) {
+            const file = input.files[0];
+            handleFile(file, index, true);
+        }
+        
+        // --- وظيفة توليد البرومبت الاحترافي (الخطوة الجديدة) ---
+        async function generateProfessionalPrompts() {
+            const validImages = uploadedImageBase64Array.filter(img => img !== null && img !== undefined);
+            const validRefImages = uploadedRefImageBase64Array.filter(img => img !== null && img !== undefined);
+
+            if (validImages.length === 0) {
+                alert("الرجاء رفع صورة منتج واحدة على الأقل لتوليد البرومبت.");
+                return;
+            }
+
+            showLoading(promptLoader, promptBtn);
+            document.getElementById('prompt-status').textContent = 'جاري توليد البرومبتات الاحترافية بناءً على تحليل السوق...';
+            
+            const systemPrompt = "You are an Elite Creative Director. Your task is to analyze primary product images for exact details, and secondary reference images for stylistic inspiration (mood, composition, lighting). Using Google Search for market trends, synthesize this information into two distinct, professional English prompts in a clean JSON format.";
+            
+            const userQuery = `Analyze the attached primary product images and the secondary reference/inspiration images. Then, perform a Google Search for high-quality advertising concepts. Generate two distinct English prompts:
+            1. 'ImagePrompt': For a high-end social media image. It must be product-focused, blending the exact product details with the style from the reference images. Focus on elegant composition and cinematic lighting. Do not include human elements.
+            2. 'VideoPrompt': For a CGI video storyboard. It should incorporate the product with authentic, UGC-style human interactions, inspired by the mood of the reference images.
+The final output MUST be a clean, valid JSON object with keys "ImagePrompt" and "VideoPrompt".`;
+            
+            let contentParts = [{ text: userQuery }];
+            contentParts.push({ text: "Primary Product Images:" });
+            validImages.forEach(img => contentParts.push({ inlineData: img }));
+            if (validRefImages.length > 0) {
+                contentParts.push({ text: "Reference/Inspiration Images:" });
+                validRefImages.forEach(img => contentParts.push({ inlineData: img }));
+            }
+
+
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${VLM_MODEL}:generateContent?key=${API_KEY}`;
+
+            const payload = {
+                contents: [{ parts: contentParts }],
+                systemInstruction: { parts: [{ text: systemPrompt }] },
+                tools: [{ "google_search": {} }] 
+            };
+
+            try {
+                const response = await exponentialBackoffFetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                const result = await response.json();
+                const responseText = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                
+                if (responseText) {
+                    try {
+                        const cleanedJsonText = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
+                        const prompts = JSON.parse(cleanedJsonText);
+                        document.getElementById('image-prompt-input').value = prompts.ImagePrompt || '';
+                        document.getElementById('video-prompt-input').value = prompts.VideoPrompt || ''; 
+                        document.getElementById('prompt-status').textContent = 'تم توليد البرومبتات الاحترافية بناءً على تحليل الترندات والسوق بنجاح.';
+                    } catch (parseError) {
+                        console.error("JSON Parsing Error:", parseError, "Raw Response:", responseText);
+                        document.getElementById('prompt-status').textContent = 'فشل تحليل استجابة البرومبت من الذكاء الاصطناعي.';
+                    }
+                } else {
+                    document.getElementById('prompt-status').textContent = 'فشل توليد البرومبت. حاول مجدداً.';
+                    console.error("Prompt generation failed:", result);
+                }
+
+            } catch (error) {
+                document.getElementById('prompt-status').textContent = `خطأ في الاتصال بالذكاء الاصطناعي: ${error.message}`;
+                console.error("Fetch Error:", error);
+            } finally {
+                hideLoading(promptLoader, promptBtn);
+            }
+        }
+        
+        // 2. توليد نماذج تصميم السوشيال ميديا (3 صور)
+        async function generateSocialMediaDesign() {
+            const validImages = uploadedImageBase64Array.filter(img => img !== null && img !== undefined);
+            const validRefImages = uploadedRefImageBase64Array.filter(img => img !== null && img !== undefined);
+
+            if (validImages.length === 0) {
+                alert("الرجاء رفع صورة منتج واحدة على الأقل لضمان دقة الألوان والأبعاد.");
+                return;
+            }
+
+            const englishPrompt = document.getElementById('image-prompt-input').value;
+
+            if (!englishPrompt) {
+                alert("الرجاء توليد أو كتابة البرومبت الاحترافي للصورة أولاً في القسم 2.");
+                return;
+            }
+
+            showLoading(imageLoader, imageBtn);
+            imageGrid.innerHTML = `<p class="md:col-span-3 text-green-600 text-center p-4">1/2: جاري توليد 3 أفكار إبداعية مختلفة للبرومبت الأساسي...</p>`;
+
+            let promptVariations = [];
+            try {
+                const systemPromptVLM = "You are a Creative Director brainstorming for a photoshoot. Based on the main prompt, generate 3 distinct, creative variations. Each should offer a unique perspective, angle, or lighting, while keeping the product as the hero.";
+                const userQueryVLM = `Main prompt: "${englishPrompt}". Generate 3 variations as a JSON array of strings.`;
+
+                const apiUrlVLM = `https://generativelanguage.googleapis.com/v1beta/models/${VLM_MODEL}:generateContent?key=${API_KEY}`;
+                const payloadVLM = {
+                    contents: [{ parts: [{ text: userQueryVLM }] }],
+                    systemInstruction: { parts: [{ text: systemPromptVLM }] },
+                    generationConfig: {
+                        responseMimeType: "application/json",
+                        responseSchema: {
+                            type: "ARRAY",
+                            items: { "type": "STRING" }
+                        }
+                    }
+                };
+                const responseVLM = await exponentialBackoffFetch(apiUrlVLM, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payloadVLM)
+                });
+                const resultVLM = await responseVLM.json();
+                const jsonText = resultVLM.candidates?.[0]?.content?.parts?.[0]?.text;
+                if (jsonText) {
+                    promptVariations = JSON.parse(jsonText);
+                    if (promptVariations.length < 3) {
+                        promptVariations.push(englishPrompt, englishPrompt);
+                        promptVariations = promptVariations.slice(0,3);
+                    }
+                } else {
+                    promptVariations = [englishPrompt, englishPrompt, englishPrompt];
+                }
+            } catch (error) {
+                console.error("Failed to generate prompt variations, using the original prompt.", error);
+                promptVariations = [englishPrompt, englishPrompt, englishPrompt];
+            }
+            
+            imageGrid.innerHTML = `<p class="md:col-span-3 text-green-600 text-center p-4">2/2: جاري توليد 3 صور إعلانية متنوعة بشكل متوازٍ...</p>`;
+            
+            const imageScale = document.querySelector('input[name="image-scale"]:checked').value;
+            const aspectRatio = imageScale === '1:1' ? 'square' : 'vertical (9:16)';
+            
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${IMAGE_MODEL}:generateContent?key=${API_KEY}`;
+            
+            let predictionPromises = [];
+
+            for (let i = 0; i < 3; i++) {
+                const variedPrompt = promptVariations[i];
+                const finalPrompt = `[STRICT FIDELITY: Replicate the uploaded product exactly, as determined by the primary product images]. ${variedPrompt}. Draw inspiration for the overall style, lighting, and composition from the provided reference images. Aspect Ratio: ${aspectRatio}. Ultra high definition, 4k.`;
+
+                let contentParts = [{ text: finalPrompt }];
+                contentParts.push({ text: "Primary Product Images for exact details:" });
+                validImages.forEach(img => contentParts.push({ inlineData: img }));
+                if (validRefImages.length > 0) {
+                    contentParts.push({ text: "Reference Images for style inspiration:" });
+                    validRefImages.forEach(img => contentParts.push({ inlineData: img }));
+                }
+
+                const payload = {
+                    contents: [{ parts: contentParts }],
+                    generationConfig: {
+                        responseModalities: ['TEXT', 'IMAGE']
+                    },
+                };
+
+                const promise = exponentialBackoffFetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                }).then(response => response.json())
+                  .then(result => {
+                      const base64Data = result?.candidates?.[0]?.content?.parts?.find(p => p.inlineData)?.inlineData?.data;
+                      return { base64Data, usedPrompt: variedPrompt };
+                  }).catch(error => {
+                      console.error(`Fetch Error generating image ${i + 1}:`, error);
+                      return { base64Data: null, usedPrompt: variedPrompt };
+                  });
+                
+                predictionPromises.push(promise);
+            }
+            
+            const allPredictions = await Promise.all(predictionPromises);
+
+            imageGrid.innerHTML = '';
+            
+            if (allPredictions.some(p => p.base64Data)) {
+                allPredictions.forEach((prediction, index) => {
+                    if (prediction.base64Data) {
+                        const base64Data = prediction.base64Data;
+                        const imageUrl = `data:image/png;base64,${base64Data}`;
+                        
+                        const heightStyle = imageScale === '9:16' ? 'h-72' : 'h-48';
+                        const statusText = `تصميم متنوع رقم ${index + 1}`;
+                        
+                        const promptDetails = `<div class="p-2 border-t bg-gray-50">
+                            <label class="text-[11px] font-bold text-gray-600 block mb-1">البرومبت المستخدم:</label>
+                            <textarea rows="3" readonly class="w-full text-[10px] p-1 border-0 bg-gray-50 resize-none">${prediction.usedPrompt}</textarea>
+                        </div>`;
+
+                        imageGrid.innerHTML += `
+                            <div class="col-span-1 border rounded-xl overflow-hidden shadow-lg bg-white flex flex-col justify-between">
+                                <div>
+                                    <img src="${imageUrl}" alt="نموذج تصميم ${index + 1}" class="w-full ${heightStyle} object-cover"/>
+                                    <div class="p-2 bg-gray-100 font-semibold flex justify-between items-center px-3">
+                                        <span class="text-xs text-green-700">${statusText}</span>
+                                        <button onclick="downloadImage('${base64Data}', 'AF-Studio-Design-${index + 1}-${imageScale}.png')" 
+                                                class="text-xs bg-primary-design hover:bg-blue-700 text-white py-1 px-2 rounded-lg transition duration-150 flex items-center">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                                            تنزيل
+                                        </button>
+                                    </div>
+                                </div>
+                                ${promptDetails}
+                            </div>
+                        `;
+                        
+                        // NEW: Save the generated image
+                        const savedImageObject = {
+                            base64Data: prediction.base64Data,
+                            usedPrompt: prediction.usedPrompt,
+                            scale: imageScale
+                        };
+                        savedSocialImages.push(savedImageObject);
+
+                    } else {
+                         const heightStyle = imageScale === '9:16' ? 'h-72' : 'h-48';
+                         imageGrid.innerHTML += `
+                            <div class="col-span-1 border rounded-xl overflow-hidden shadow-lg bg-white flex flex-col justify-between items-center justify-center ${heightStyle}">
+                                <p class="text-red-500 text-center p-4">فشل توليد التصميم ${index + 1}</p>
+                            </div>
+                         `;
+                    }
+                });
+            } else {
+                imageGrid.innerHTML = `<p class="md:col-span-3 text-red-500 text-center p-8">عذراً، لم يتم توليد أي صور بنجاح. حاول تغيير المدخلات أو التأكد من جودة الصورة المرجعية.</p>`;
+            }
+            
+            updateSavedImagesGallery();
+            hideLoading(imageLoader, imageBtn);
+        }
+        
+        // --- New function to generate Veo 3 optimized prompts (RE-ADDED) ---
+        async function generateVeo3Prompts(scenesData, outputElement, videoScale) {
+            outputElement.innerHTML = '';
+            
+            const scaleText = videoScale === '9:16' ? 'vertical' : 'horizontal';
+            
+            const systemPrompt = `You are an expert prompt engineer for cinematic text-to-video models. Your task is to take a static image prompt and transform it into an optimized, action-oriented English prompt that instructs the AI on smooth camera movement, motion of elements, and cinematic style for a 5-second video clip.`;
+            
+            const userQueries = scenesData.map(scene => ({
+                scenePrompt: scene.scenePrompt,
+                arabicTitle: scene.arabicTitle
+            }));
+            
+            const userQuery = `For the following 3 scenes, generate a corresponding optimized 'VideoMotionPrompt' that includes detailed camera movement and element motion. The output must be a JSON array. Each prompt must also specify the aspect ratio for safety: ${scaleText}.`;
+
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${VLM_MODEL}:generateContent?key=${API_KEY}`;
+            
+            const payload = {
+                contents: [{ parts: [{ text: userQuery + " Scenes: " + JSON.stringify(userQueries) }] }],
+                systemInstruction: { parts: [{ text: systemPrompt }] },
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    responseSchema: {
+                        type: "ARRAY",
+                        items: {
+                            type: "OBJECT",
+                            properties: {
+                                "ArabicTitle": { "type": "STRING", "description": "العنوان العربي للمشهد." },
+                                "VideoMotionPrompt": { "type": "STRING", "description": "برومبت إنجليزي محسن وموجه للحركة (Motion Prompt) لبرنامج Veo 3." }
+                            },
+                            propertyOrdering: ["ArabicTitle", "VideoMotionPrompt"]
+                        }
+                    }
+                }
+            };
+            
+            try {
+                const response = await exponentialBackoffFetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                const result = await response.json();
+                const jsonText = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                
+                if (jsonText) {
+                    const motionPrompts = JSON.parse(jsonText);
+                    
+                    motionPrompts.forEach((prompt, index) => {
+                        outputElement.innerHTML += `
+                            <div class="bg-white p-3 rounded-lg shadow-md border border-gray-200">
+                                <h5 class="font-bold text-sm text-indigo-700 mb-2 border-b pb-1">مشهد ${index + 1}: ${prompt.ArabicTitle}</h5>
+                                <textarea rows="3" class="w-full p-2 text-xs border border-gray-300 rounded-lg bg-gray-50 focus:ring-indigo-500 focus:border-indigo-500 transition duration-150 ease-in-out">
+                                    ${prompt.VideoMotionPrompt.trim()}
+                                </textarea>
+                                <p class="text-[10px] text-gray-500 mt-1">
+                                    قم بنسخ هذا البرومبت بالكامل واستخدامه في برنامج Veo 3 (أو أي مولد فيديو بالذكاء الاصطناعي).
+                                </p>
+                            </div>
+                        `;
+                    });
+                    
+                    document.getElementById('veo3-prompts-area').querySelector('h4').innerHTML = 'مقترحات برومبت Veo 3 للحركة (جاهزة للنسخ)';
+                    document.getElementById('veo3-prompts-area').classList.remove('hidden');
+
+                } else {
+                    outputElement.innerHTML = `<p class="text-red-500 text-center p-3">فشل توليد برومبتات الحركة. يرجى مراجعة البرومبت الإنجليزي الأساسي.</p>`;
+                }
+            } catch (error) {
+                outputElement.innerHTML = `<p class="text-red-500 text-center p-3">خطأ في الاتصال بالذكاء الاصطناعي لتوليد برومبتات الحركة: ${error.message}</p>`;
+            }
+        }
+
+
+        // 3. توليد نماذج مفهوم الفيديو CGI (Visual Storyboard Generation) (RE-ADDED)
+        async function generateCgiConcept() {
+            const validImages = uploadedImageBase64Array.filter(img => img !== null && img !== undefined);
+            const validRefImages = uploadedRefImageBase64Array.filter(img => img !== null && img !== undefined);
+            
+            if (validImages.length === 0) {
+                 alert("الرجاء رفع صورة منتج واحدة على الأقل لضمان دقة الألوان والأبعاد.");
+                 return;
+             }
+
+            showLoading(conceptLoader, videoBtn);
+            conceptList.innerHTML = '';
+
+            const videoPrompt = document.getElementById('video-prompt-input').value;
+            const videoScale = document.querySelector('input[name="video-scale"]:checked').value;
+            
+            if (!videoPrompt) {
+                alert("الرجاء توليد أو كتابة البرومبت الاحترافي للفيديو أولاً في القسم 2.");
+                hideLoading(conceptLoader, videoBtn);
+                return;
+            }
+            
+            const scaleText = videoScale === '9:16' ? 'vertical (9:16)' : 'horizontal (16:9)';
+            const heightStyle = videoScale === '9:16' ? 'h-72' : 'h-48'; 
+
+            conceptList.innerHTML = `<p class="md:col-span-3 text-indigo-600 text-center p-4">1/3: جاري توليد أوصاف المشاهد الثلاثة...</p>`;
+
+            const systemPromptVLM = `You are a CGI Storyboard Artist. Based on the video prompt, primary product images, and secondary reference images, generate 3 distinct visual prompts for a text-to-image model. IMPORTANT: Each 'EnglishImagePrompt' MUST start with: [MAINTAIN EXACT PRODUCT FIDELITY]. These prompts should represent key scenes (Act 1, 2, 3) of the video, incorporating the style from the reference images. Provide a short, catchy Arabic title for each scene.`;
+            
+            const userQueryVLM = `Main video concept prompt: "${videoPrompt}". Generate 3 scenes for a video with aspect ratio ${scaleText}. The JSON structure must include the Arabic title and the detailed English image prompt.`;
+            
+            let contentPartsVLM = [{ text: userQueryVLM }];
+            contentPartsVLM.push({ text: "Primary Product Images:" });
+            validImages.forEach(img => contentPartsVLM.push({ inlineData: img }));
+            if (validRefImages.length > 0) {
+                contentPartsVLM.push({ text: "Reference Images for style:" });
+                validRefImages.forEach(img => contentPartsVLM.push({ inlineData: img }));
+            }
+
+
+            const apiUrlVLM = `https://generativelanguage.googleapis.com/v1beta/models/${VLM_MODEL}:generateContent?key=${API_KEY}`;
+
+            const payloadVLM = {
+                contents: [{ parts: contentPartsVLM }],
+                systemInstruction: { parts: [{ text: systemPromptVLM }] },
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    responseSchema: {
+                        type: "ARRAY",
+                        items: {
+                            type: "OBJECT",
+                            properties: {
+                                "ArabicTitle": { "type": "STRING", "description": "عنوان عربي قصير وجذاب للمشهد." },
+                                "EnglishImagePrompt": { "type": "STRING", "description": "برومبت إنجليزي مفصل لتوليد الصورة المرئية للمشهد." }
+                            },
+                            propertyOrdering: ["ArabicTitle", "EnglishImagePrompt"]
+                        }
+                    }
+                }
+            };
+            
+            let scenes = [];
+            try {
+                const responseVLM = await exponentialBackoffFetch(apiUrlVLM, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payloadVLM)
+                });
+                
+                const resultVLM = await responseVLM.json();
+                const jsonTextVLM = resultVLM.candidates?.[0]?.content?.parts?.[0]?.text;
+                
+                if (jsonTextVLM) {
+                    scenes = JSON.parse(jsonTextVLM);
+                } else {
+                    conceptList.innerHTML = `<p class="md:col-span-3 text-red-500 text-center p-8">فشل توليد أوصاف المشاهد (Storyboards).</p>`;
+                    hideLoading(conceptLoader, videoBtn);
+                    return;
+                }
+            } catch (error) {
+                conceptList.innerHTML = `<p class="md:col-span-3 text-red-500 text-center p-8">خطأ في الاتصال بالذكاء الاصطناعي لتوليد الأوصاف.</p>`;
+                console.error("VLM Scene generation error:", error);
+                hideLoading(conceptLoader, videoBtn);
+                return;
+            }
+            
+            conceptList.innerHTML = '';
+
+            conceptList.innerHTML = `
+                <div id="video-frames-grid" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <p class="md:col-span-3 text-indigo-600 text-center p-4">2/3: جاري توليد الإطارات المرئية للمشاهد بشكل متوازٍ...</p>
+                </div>
+                <div id="veo3-prompts-area" class="mt-6 p-4 bg-indigo-50 rounded-lg border border-indigo-200 hidden">
+                    <h4 class="font-bold text-lg text-indigo-800 mb-3 border-b pb-2 flex items-center">
+                         <span class="text-indigo-600 mr-2">●</span> مقترحات برومبت Veo 3 للحركة (Motion Prompts)
+                    </h4>
+                    <div id="veo3-prompt-inputs" class="space-y-4">
+                    </div>
+                </div>
+            `;
+
+            const videoFramesGrid = document.getElementById('video-frames-grid');
+            const veo3PromptInputs = document.getElementById('veo3-prompt-inputs');
+            let veo3PromptsData = [];
+
+            const apiUrlImage = `https://generativelanguage.googleapis.com/v1beta/models/${IMAGE_MODEL}:generateContent?key=${API_KEY}`;
+            
+            let imageGenerationPromises = [];
+
+            for (let i = 0; i < scenes.length && i < 3; i++) {
+                const scene = scenes[i];
+                const scenePrompt = `${scene.EnglishImagePrompt}. Aspect Ratio: ${scaleText}. High resolution, ultra-detail, cinematic lighting, 4k.`;
+                
+                let contentPartsImage = [{ text: scenePrompt }];
+                contentPartsImage.push({ text: "Primary Product Images for exact details:" });
+                validImages.forEach(img => contentPartsImage.push({ inlineData: img }));
+                if (validRefImages.length > 0) {
+                    contentPartsImage.push({ text: "Reference Images for style inspiration:" });
+                    validRefImages.forEach(img => contentPartsImage.push({ inlineData: img }));
+                }
+
+                const payloadImage = {
+                    contents: [{ parts: contentPartsImage }],
+                    generationConfig: {
+                        responseModalities: ['TEXT', 'IMAGE']
+                    },
+                };
+
+                const promise = exponentialBackoffFetch(apiUrlImage, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payloadImage)
+                }).then(response => response.json())
+                  .then(result => {
+                      const base64Data = result?.candidates?.[0]?.content?.parts?.find(p => p.inlineData)?.inlineData?.data;
+                      
+                      return { 
+                          base64Data, 
+                          arabicTitle: scene.ArabicTitle,
+                          englishPrompt: scene.EnglishImagePrompt,
+                          index: i 
+                      };
+                  }).catch(error => {
+                      console.error(`Imagen Scene ${i+1} generation error:`, error);
+                      return { base64Data: null, index: i };
+                  });
+                
+                imageGenerationPromises.push(promise);
+            }
+            
+            const generatedFrames = await Promise.all(imageGenerationPromises);
+
+            generatedFrames.sort((a, b) => a.index - b.index);
+
+            videoFramesGrid.innerHTML = '';
+            
+            generatedFrames.forEach(frame => {
+                if (frame.base64Data) {
+                    const imageUrl = `data:image/png;base64,${frame.base64Data}`;
+                    
+                    videoFramesGrid.innerHTML += `
+                        <div class="col-span-1 border rounded-xl overflow-hidden shadow-lg bg-white flex flex-col">
+                            <img src="${imageUrl}" alt="${frame.arabicTitle}" class="w-full ${heightStyle} object-cover"/>
+                            <div class="p-3 bg-indigo-50 flex-grow">
+                                <h4 class="font-bold text-indigo-700 text-sm mb-1">مشهد ${frame.index + 1}: ${frame.arabicTitle}</h4>
+                                <p class="text-[11px] text-gray-600 leading-snug">(${frame.englishPrompt})</p>
+                                <button onclick="downloadImage('${frame.base64Data}', 'AF-Studio-Storyboard-${frame.index + 1}-${videoScale}.png')" 
+                                        class="text-xs bg-indigo-600 hover:bg-indigo-700 text-white py-1.5 px-2 rounded-lg mt-2 transition duration-150 flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                                    تنزيل الإطار
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    
+                    veo3PromptsData.push({ 
+                        scenePrompt: frame.englishPrompt,
+                        arabicTitle: frame.arabicTitle
+                    });
+
+                    const savedStoryboardObject = {
+                        base64Data: frame.base64Data,
+                        arabicTitle: frame.arabicTitle,
+                        englishPrompt: frame.englishPrompt,
+                        scale: videoScale
+                    };
+                    savedStoryboards.push(savedStoryboardObject);
+                    
+                } else {
+                    videoFramesGrid.innerHTML += `<p class="col-span-1 text-red-500 text-center p-4 border rounded-lg">فشل توليد الإطار المرئي للمشهد ${frame.index + 1}.</p>`;
+                }
+            });
+            
+            updateSavedImagesGallery();
+
+            if (veo3PromptsData.length > 0) {
+                videoFramesGrid.querySelector('p').innerHTML = 'تم توليد الإطارات المرئية بنجاح.';
+                
+                document.getElementById('veo3-prompts-area').classList.remove('hidden');
+                conceptList.querySelector('p').innerHTML = `3/3: جاري توليد برومبتات Veo 3 للحركة...`;
+                
+                await generateVeo3Prompts(veo3PromptsData, veo3PromptInputs, videoScale);
+            } else {
+                conceptList.innerHTML = `<p class="md:col-span-3 text-red-500 text-center p-8">لم يتم توليد أي إطارات مرئية للفيديو.</p>`;
+            }
+
+            hideLoading(conceptLoader, videoBtn);
+        }
+        
+        // 4. توليد قوائم الإلهام والترندات
+        async function generateCreativeInspiration() {
+            const validImages = uploadedImageBase64Array.filter(img => img !== null && img !== undefined);
+
+            if (validImages.length === 0) {
+                 alert("الرجاء رفع صورة منتج واحدة على الأقل لضمان توليد إلهام دقيق.");
+                 return;
+             }
+             
+            showLoading(inspirationLoader, inspirationBtn);
+            inspirationList.innerHTML = '';
+            
+            const analysisPromptForInspiration = `Analyze the attached product image(s) and infer all necessary details (Type, Brand name, Product name, shape, colors, materials, logo, text). Summarize the aesthetic style and product details in a concise paragraph in Arabic.`;
+            
+            let contentPartsAnalysis = [{ text: analysisPromptForInspiration }];
+            validImages.forEach(img => contentPartsAnalysis.push({ inlineData: img }));
+            
+            const apiUrlVLM = `https://generativelanguage.googleapis.com/v1beta/models/${VLM_MODEL}:generateContent?key=${API_KEY}`;
+            
+            let productDescription = '';
+
+            try {
+                const responseAnalysis = await exponentialBackoffFetch(apiUrlVLM, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ contents: [{ parts: contentPartsAnalysis }] })
+                });
+                const resultAnalysis = await responseAnalysis.json();
+                productDescription = resultAnalysis.candidates?.[0]?.content?.parts?.[0]?.text || 'منتج فاخر غامض (فشل الوصف)';
+            } catch (error) {
+                console.error("Inspiration analysis failed, using default description:", error);
+                productDescription = 'منتج فاخر غامض (فشل الوصف)';
+            }
+            
+            const systemPrompt = "أنت مستشار إبداعي متطور متخصص في تسويق المنتجات الفاخرة. مهمتك هي تحليل المنتج الموصوف أدناه وتقديم 3 قوائم إلهام وتوجيه إعلاني محددة، لكل قائمة 5 نقاط.";
+            
+            const userQuery = `بناءً على النمط الجمالي للمنتج الذي تم تحليله كالتالي: (${productDescription})، يرجى تزويدي بالآتي في تنسيق JSON: 
+            1. 'VideoConcepts': 5 أفكار فيديوهات CGI/إعلانية منتشرة حالياً يمكن تنفيذها بنفس ستايل المنتج.
+            2. 'DesignStyles': 5 أنماط تصميم صور سوشيال ميديا مقترحة (بناءً على النمط الجمالي للمنتج).
+            3. 'CurrentTrends': 5 ترندات فيديو وصور حالية على منصات مثل TikTok و Reels يمكن تكييفها مع المنتج.`;
+            
+            let contentParts = [{ text: userQuery }];
+            validImages.forEach(img => contentParts.push({ inlineData: img }));
+
+
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${VLM_MODEL}:generateContent?key=${API_KEY}`;
+
+            const payload = {
+                contents: [{ parts: contentParts }],
+                systemInstruction: { parts: [{ text: systemPrompt }] },
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    responseSchema: {
+                        type: "OBJECT",
+                        properties: {
+                            "VideoConcepts": { 
+                                "type": "ARRAY", 
+                                "description": "5 concepts for video ads matching the product aesthetic." ,
+                                "items": { "type": "STRING" }
+                            },
+                            "DesignStyles": { 
+                                "type": "ARRAY", 
+                                "description": "5 styles for image ads matching the product aesthetic.",
+                                "items": { "type": "STRING" }
+                            },
+                            "CurrentTrends": { 
+                                "type": "ARRAY", 
+                                "description": "5 current social media trends.",
+                                "items": { "type": "STRING" }
+                            }
+                        }
+                    }
+                }
+            };
+
+            try {
+                const response = await exponentialBackoffFetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                const result = await response.json();
+                const jsonText = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                
+                inspirationList.innerHTML = '';
+
+                if (jsonText) {
+                    const inspirationData = JSON.parse(jsonText);
+                    
+                    const renderList = (title, items, color, icon) => `
+                        <div class="border-b pb-3 mb-4 last:border-b-0">
+                            <h4 class="font-bold text-lg text-${color}-700 flex items-center mb-2">
+                                ${icon}
+                                ${title}
+                            </h4>
+                            <ul class="list-disc pr-6 mt-2 space-y-2 text-gray-700">
+                                ${items.map(item => `<li class="text-sm leading-relaxed">${item}</li>`).join('')}
+                            </ul>
+                        </div>
+                    `;
+                    
+                    const videoIcon = `<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 ml-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 10l7 4-7 4V10z"/><rect x="3" y="4" width="16" height="16" rx="2"/></svg>`;
+                    const designIcon = `<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 ml-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h.01"/><path d="M16.5 7.5l-3 3l-1.5-1.5l-3 3"/><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/></svg>`;
+                    const trendIcon = `<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 ml-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>`;
+
+
+                    inspirationList.innerHTML += renderList(
+                        "أفكار فيديوهات سابقة/منتشرة يمكن تنفيذها بنفس ستايل المنتج", 
+                        inspirationData.VideoConcepts || [], 
+                        'indigo',
+                        videoIcon
+                    );
+                    
+                    inspirationList.innerHTML += renderList(
+                        "أنماط تصميم صور سوشيال ميديا مقترحة (بناءً على النمط الجمالي للمنتج)", 
+                        inspirationData.DesignStyles || [], 
+                        'green',
+                        designIcon
+                    );
+
+                    inspirationList.innerHTML += renderList(
+                        "أكثر الأعمال ترند حالياً على منصات السوشيال ميديا", 
+                        inspirationData.CurrentTrends || [], 
+                        'orange',
+                        trendIcon
+                    );
+                    
+                } else {
+                    inspirationList.innerHTML = `<p class="text-red-500 text-center p-3">عذراً، لم يتمكن الذكاء الاصطناعي من توليد قوائم الإلهام.</p>`;
+                    console.error("Inspiration generation failed:", result);
+                }
+
+            } catch (error) {
+                inspirationList.innerHTML = `<p class="text-red-500 text-center p-3">حدث خطأ أثناء الاتصال بواجهة برمجة تطبيقات الذكاء الاصطناعي: ${error.message}</p>`;
+                console.error("Fetch Error:", error);
+            } finally {
+                hideLoading(inspirationLoader, inspirationBtn);
+            }
+        }
+        
+        // --- New function to generate Marketing Caption and Hashtags ---
+        async function generateCaptionAndHashtags() {
+            const validImages = uploadedImageBase64Array.filter(img => img !== null && img !== undefined);
+            const englishPrompt = document.getElementById('image-prompt-input').value;
+
+            if (validImages.length === 0) {
+                 alert("الرجاء رفع صورة منتج واحدة على الأقل.");
+                 return;
+            }
+            if (!englishPrompt) {
+                alert("الرجاء توليد أو كتابة البرومبت الاحترافي للصورة أولاً في القسم 2.");
+                return;
+            }
+            
+            showLoading(captionLoader, captionBtn);
+            captionOutput.innerHTML = '';
+            
+            const systemPrompt = "You are a world-class Direct Response Social Media Copywriter. Your expertise lies in crafting short, punchy, and persuasive ad copy that drives sales. You write in a simple, attractive, and compelling tone, always including a clear and strong Call to Action (CTA).";
+            
+            const userQuery = `Based on the attached product images, the advertising concept prompt ("${englishPrompt}"), and insights from Google Search on current trends, generate content for two languages. The final output MUST be a clean, valid JSON object string with two keys: "ArabicContent" and "EnglishContent". Do not include any explanatory text or markdown formatting (like \`\`\`json). 
+            For 'ArabicContent': Create a concise, sales-focused Arabic caption (1-2 sentences) with a strong Call to Action (e.g., تسوق الآن), followed by a new line and 10 relevant Arabic hashtags.
+            For 'EnglishContent': Create a concise, sales-focused English caption (1-2 sentences) with a strong Call to Action (e.g., Shop Now), followed by a new line and 10 relevant English hashtags.
+            The tone must be simple, captivating, and designed to sell.`;
+            
+            let contentParts = [{ text: userQuery }];
+            validImages.forEach(img => contentParts.push({ inlineData: img }));
+            
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${VLM_MODEL}:generateContent?key=${API_KEY}`;
+            
+            const payload = {
+                contents: [{ parts: contentParts }],
+                systemInstruction: { parts: [{ text: systemPrompt }] },
+                tools: [{ "google_search": {} }] 
+            };
+
+            try {
+                const response = await exponentialBackoffFetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                const result = await response.json();
+                const responseText = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                
+                if (responseText) {
+                    try {
+                        const cleanedJsonText = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
+                        const content = JSON.parse(cleanedJsonText);
+                    
+                        const renderContent = (title, text, lang) => `
+                            <div class="border p-3 rounded-lg bg-white shadow-md">
+                                <h4 class="font-bold text-base mb-2 text-gray-800">${title}</h4>
+                                <textarea rows="6" class="w-full p-2 text-sm border border-gray-300 rounded-lg bg-gray-50">${text.trim()}</textarea>
+                            </div>
+                        `;
+
+                        captionOutput.innerHTML = renderContent("المحتوى الإعلاني بالعربية والهاشتاجات", content.ArabicContent || '', 'ar');
+                        captionOutput.innerHTML += renderContent("المحتوى الإعلاني بالإنجليزية والهاشتاجات", content.EnglishContent || '', 'en');
+                    } catch (parseError) {
+                         console.error("JSON Parsing Error:", parseError, "Raw Response:", responseText);
+                         captionOutput.innerHTML = `<p class="md:col-span-2 text-red-500 text-center p-3">فشل تحليل استجابة المحتوى من الذكاء الاصطناعي.</p>`;
+                    }
+                } else {
+                    captionOutput.innerHTML = `<p class="md:col-span-2 text-red-500 text-center p-3">فشل توليد المحتوى التسويقي. حاول مجدداً.</p>`;
+                    console.error("Caption generation failed:", result);
+                }
+
+            } catch (error) {
+                captionOutput.innerHTML = `<p class="md:col-span-2 text-red-500 text-center p-3">حدث خطأ أثناء الاتصال بالذكاء الاصطناعي/البحث: ${error.message}</p>`;
+                console.error("Fetch Error:", error);
+            } finally {
+                hideLoading(captionLoader, captionBtn);
+            }
+        }
+
+        // --- NEW: Function to update saved images gallery ---
+        function updateSavedImagesGallery() {
+            const socialContainer = document.getElementById('saved-social-images-grid');
+            const storyboardContainer = document.getElementById('saved-storyboards-grid');
+            const galleryPlaceholder = document.getElementById('gallery-placeholder');
+            const socialSection = document.getElementById('social-gallery-section');
+            const storyboardSection = document.getElementById('storyboard-gallery-section');
+
+            if (savedSocialImages.length === 0 && savedStoryboards.length === 0) {
+                galleryPlaceholder.classList.remove('hidden');
+                socialSection.classList.add('hidden');
+                storyboardSection.classList.add('hidden');
+                return;
+            }
+            
+            galleryPlaceholder.classList.add('hidden');
+
+            if (savedSocialImages.length > 0) {
+                socialSection.classList.remove('hidden');
+                socialContainer.innerHTML = '';
+                savedSocialImages.forEach((imgData, index) => {
+                    const imageUrl = `data:image/png;base64,${imgData.base64Data}`;
+                    socialContainer.innerHTML += `
+                        <div class="relative group">
+                            <img src="${imageUrl}" class="w-full h-24 object-cover rounded-lg shadow-md cursor-pointer transition-transform duration-200 group-hover:scale-105" alt="Saved Design ${index + 1}">
+                            <div class="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 rounded-lg">
+                                <span class="text-white text-xs text-center p-1">مقياس ${imgData.scale}</span>
+                            </div>
+                        </div>
+                    `;
+                });
+            } else {
+                socialSection.classList.add('hidden');
+            }
+
+            if (savedStoryboards.length > 0) {
+                storyboardSection.classList.remove('hidden');
+                storyboardContainer.innerHTML = '';
+                savedStoryboards.forEach((imgData, index) => {
+                    const imageUrl = `data:image/png;base64,${imgData.base64Data}`;
+                    storyboardContainer.innerHTML += `
+                        <div class="relative group">
+                            <img src="${imageUrl}" class="w-full h-24 object-cover rounded-lg shadow-md cursor-pointer transition-transform duration-200 group-hover:scale-105" alt="Saved Storyboard ${index + 1}">
+                            <div class="absolute inset-0 bg-black bg-opacity-60 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 rounded-lg">
+                                <span class="text-white text-xs font-bold text-center p-1">${imgData.arabicTitle}</span>
+                                <span class="text-white text-[10px] text-center p-1">مقياس ${imgData.scale}</span>
+                            </div>
+                        </div>
+                    `;
+                });
+            } else {
+                storyboardSection.classList.add('hidden');
+            }
+        }
+
+
+        // --- Speech Recognition Setup ---
+        function setupSpeechRecognition() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            const recordImageBtn = document.getElementById('record-image-prompt-btn');
+            const recordVideoBtn = document.getElementById('record-video-prompt-btn');
+            const imagePromptTextarea = document.getElementById('image-prompt-input');
+            const videoPromptTextarea = document.getElementById('video-prompt-input');
+            const imageMicIcon = document.getElementById('mic-icon-image');
+            const videoMicIcon = document.getElementById('mic-icon-video');
+            const imageLangSelector = document.getElementById('lang-selector-image');
+            const videoLangSelector = document.getElementById('lang-selector-video');
+
+
+            if (!SpeechRecognition) {
+                recordImageBtn.style.display = 'none';
+                recordVideoBtn.style.display = 'none';
+                console.warn("Speech Recognition API is not supported in this browser.");
+                return;
+            }
+
+            const recognition = new SpeechRecognition();
+            recognition.continuous = false; // Stop after a pause
+            recognition.interimResults = false;
+            // recognition.lang is set dynamically now
+
+            let isRecording = false;
+            let targetTextarea = null;
+            let targetIcon = null;
+
+            const toggleRecording = (textarea, button, icon, langSelector) => {
+                if (isRecording) {
+                    recognition.stop();
+                } else {
+                    targetTextarea = textarea;
+                    targetIcon = icon;
+                    recognition.lang = langSelector.value; // Set language from selector
+                    try {
+                        recognition.start();
+                    } catch(e) {
+                         console.error("Speech recognition error:", e);
+                         alert("لا يمكن بدء التسجيل الصوتي. قد يكون قيد الاستخدام بالفعل.");
+                    }
+                }
+            };
+
+            recognition.onstart = () => {
+                isRecording = true;
+                if (targetIcon) {
+                    targetIcon.classList.add('text-red-500', 'recording-indicator');
+                }
+            };
+            
+            recognition.onend = () => {
+                isRecording = false;
+                if (targetIcon) {
+                    targetIcon.classList.remove('text-red-500', 'recording-indicator');
+                }
+                targetTextarea = null;
+                targetIcon = null;
+            };
+
+            recognition.onerror = (event) => {
+                console.error('Speech recognition error:', event.error);
+                if (event.error === 'not-allowed') {
+                    alert('تم رفض إذن استخدام الميكروفون. يرجى تمكين الوصول للميكروفون في إعدادات المتصفح.');
+                }
+                 recognition.stop();
+            };
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                if (targetTextarea) {
+                    targetTextarea.value += transcript + '. ';
+                }
+            };
+
+            recordImageBtn.addEventListener('click', () => toggleRecording(imagePromptTextarea, recordImageBtn, imageMicIcon, imageLangSelector));
+            recordVideoBtn.addEventListener('click', () => toggleRecording(videoPromptTextarea, recordVideoBtn, videoMicIcon, videoLangSelector));
+        }
+
+
+        // --- وظيفة إعداد السحب والإفلات ---
+        function setupDragAndDrop() {
+            const dropZones = document.querySelectorAll('.drop-zone');
+            const refDropZones = document.querySelectorAll('.drop-zone-ref');
+
+            const setupZone = (zone, isRef) => {
+                ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                    zone.addEventListener(eventName, e => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                    }, false);
+                });
+
+                ['dragenter', 'dragover'].forEach(eventName => {
+                    zone.addEventListener(eventName, () => {
+                        zone.classList.add('drag-over');
+                    }, false);
+                });
+
+                ['dragleave', 'drop'].forEach(eventName => {
+                    zone.addEventListener(eventName, () => {
+                        zone.classList.remove('drag-over');
+                    }, false);
+                });
+
+                zone.addEventListener('drop', e => {
+                    const dt = e.dataTransfer;
+                    const files = dt.files;
+                    const index = parseInt(zone.dataset.index);
+
+                    if (files.length > 0) {
+                        handleFile(files[0], index, isRef);
+                    }
+                }, false);
+            };
+
+            dropZones.forEach(zone => setupZone(zone, false));
+            refDropZones.forEach(zone => setupZone(zone, true));
+        }
+        
+        // --- استدعاء وظائف الإعداد عند تحميل الصفحة ---
+        document.addEventListener('DOMContentLoaded', () => {
+             setupDragAndDrop();
+             setupSpeechRecognition();
+        });
+
+
+    </script>
+
+</body>
+</html>
+
